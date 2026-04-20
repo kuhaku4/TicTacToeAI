@@ -10,9 +10,10 @@ class TicTacToe:
         self.current = "X"
         self.board = [["" for _ in range(3)] for _ in range(3)]
         self.buttons = [[None for _ in range(3)] for _ in range(3)]
+        self.mode = None  # No mode selected initially
 
         self.font = ("Arial", 20)  # Initial font size
-        self.status = tk.Label(root, text="Turn: X", font=self.font)
+        self.status = tk.Label(root, text="Choose mode", font=self.font)
         self.status.grid(row=0, column=0, columnspan=3, pady=(10, 5))
 
         # Configure grid weights for dynamic scaling
@@ -20,6 +21,7 @@ class TicTacToe:
         for i in range(1, 4):
             root.rowconfigure(i, weight=1)
         root.rowconfigure(4, weight=0)
+        root.rowconfigure(5, weight=0)  # For choice buttons
         for j in range(3):
             root.columnconfigure(j, weight=1)
 
@@ -37,8 +39,16 @@ class TicTacToe:
         restart_button = tk.Button(root, text="Restart", command=self.reset)
         restart_button.grid(row=4, column=0, columnspan=3, sticky="we", pady=(5, 10))
 
+        # Choice buttons
+        self.ai_button = tk.Button(root, text="Play vs AI", command=self.set_ai)
+        self.human_button = tk.Button(root, text="Play vs Human", command=self.set_human)
+
         # Bind resize event
         root.bind('<Configure>', self.on_resize)
+
+        # Initially disable board and show choice
+        self.disable_all()
+        self.show_choice()
 
     def on_resize(self, event):
         if event.widget == self.root:
@@ -70,7 +80,7 @@ class TicTacToe:
         else:
             self.current = "O" if self.current == "X" else "X"
             self.status.config(text=f"Turn: {self.current}")
-            if self.current == "O":
+            if self.current == "O" and self.mode == "AI":
                 self.ai_move()
 
     def ai_move(self):
@@ -136,13 +146,40 @@ class TicTacToe:
             for button in row:
                 button.config(state="disabled")
 
+    def enable_all(self):
+        for row in self.buttons:
+            for button in row:
+                button.config(state="normal")
+
     def reset(self):
         self.current = "X"
         self.board = [["" for _ in range(3)] for _ in range(3)]
-        self.status.config(text="Turn: X")
+        self.mode = None
+        self.status.config(text="Choose mode")
         for row in self.buttons:
             for button in row:
-                button.config(text="", state="normal")
+                button.config(text="", state="disabled")
+        self.show_choice()
+
+    def show_choice(self):
+        self.ai_button.grid(row=5, column=0, columnspan=1, sticky="we", pady=(5, 10))
+        self.human_button.grid(row=5, column=1, columnspan=2, sticky="we", pady=(5, 10))
+
+    def hide_choice(self):
+        self.ai_button.grid_forget()
+        self.human_button.grid_forget()
+
+    def set_ai(self):
+        self.mode = "AI"
+        self.status.config(text="Turn: X")
+        self.enable_all()
+        self.hide_choice()
+
+    def set_human(self):
+        self.mode = "Human"
+        self.status.config(text="Turn: X")
+        self.enable_all()
+        self.hide_choice()
 
 if __name__ == "__main__":
     root = tk.Tk()
